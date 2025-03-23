@@ -2,7 +2,7 @@ services:
   - type: web
     name: pinecone-flask-api
     env: python
-    buildCommand: pip install -r requirements.txt && python -m spacy download fr_core_news_md
+    buildCommand: pip install -r requirements.txt
     startCommand: python app.py
     envVars:
       - key: PINECONE_API_KEY
