@@ -1,6 +1,0 @@
-flask
-pinecone-client
-spacy
-pypdf
-nltk
-python-dotenv
