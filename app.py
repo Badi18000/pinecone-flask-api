@@ -3,7 +3,8 @@ from insert import process_and_upload_pdf, create_index, upsert_to_pinecone
 from query import query_pinecone
 import os
 from dotenv import load_dotenv
-from pinecone
+import pinecone
+
 
 load_dotenv()
 
