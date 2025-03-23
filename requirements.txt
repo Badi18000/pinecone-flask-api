@@ -4,3 +4,5 @@ spacy
 pypdf
 nltk
 python-dotenv
+gunicorn
+
