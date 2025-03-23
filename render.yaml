@@ -2,15 +2,15 @@ services:
   - type: web
     name: pinecone-flask-api
     env: python
-    buildCommand: |
-      pip install -r requirements.txt
-      python -m spacy download fr_core_news_sm
-    startCommand: gunicorn app:app
+    plan: starter
+    buildCommand: pip install -r requirements.txt && python -m spacy download fr_core_news_sm
+    startCommand: python app.py
     envVars:
       - key: PINECONE_API_KEY
-        value: pcsk_5bw51H_28zuR7cmyAeSnwRpMUNrSfdikKWX1hcU94rDLiYvFtep8UvMTnESybkJEzYt5YG
+        value: ton_api_key
       - key: PINECONE_ENV
         value: us-east-1
       - key: INDEX_NAME
         value: french-n8n
+    **port: 10000**
 
