@@ -20,7 +20,7 @@ if INDEX_NAME not in pc.list_indexes().names():
         spec=ServerlessSpec(cloud="aws", region="us-east-1")
     )
 
-index = pc.Index(INDEX_NAME
+index = pc.Index(INDEX_NAME)
 
 
 nlp = spacy.load("fr_core_news_md")
