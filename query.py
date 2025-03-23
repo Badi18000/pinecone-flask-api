@@ -2,6 +2,7 @@ from pinecone import Pinecone, ServerlessSpec
 import spacy
 import os
 from dotenv import load_dotenv
+import spacy.cli
 
 load_dotenv()
 
@@ -21,6 +22,8 @@ if INDEX_NAME not in pc.list_indexes().names():
     )
 
 index = pc.Index(INDEX_NAME)
+
+spacy.cli.download("fr_core_news_sm")
 
 
 nlp = spacy.load("fr_core_news_sm")
