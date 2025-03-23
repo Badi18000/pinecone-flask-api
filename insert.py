@@ -38,7 +38,7 @@ def create_index(index_name):
             spec=ServerlessSpec(cloud='aws', region='us-east-1')
         )
 
-nlp = spacy.load("fr_core_news_md")
+nlp = spacy.load("fr_core_news_sm")
 
 def extract_text_from_pdf(pdf_path):
     reader = PdfReader(pdf_path)
