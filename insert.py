@@ -7,6 +7,10 @@ from pypdf import PdfReader
 import os
 from dotenv import load_dotenv
 import spacy.cli
+import pdfplumber
+from pdf2image import convert_from_path
+import pytesseract
+from utils import split_and_embed 
 
 load_dotenv()
 
@@ -29,7 +33,6 @@ if INDEX_NAME not in pc.list_indexes().names():
 
 index = pc.Index(INDEX_NAME)
 
-
 def create_index(index_name):
     if not pc.has_index(index_name):
         pc.create_index(
@@ -38,14 +41,33 @@ def create_index(index_name):
             metric="cosine",
             spec=ServerlessSpec(cloud='aws', region='us-east-1')
         )
-        
+
 spacy.cli.download("fr_core_news_sm")
 nlp = spacy.load("fr_core_news_sm")
 
+# ---------- 🧠 Extraction PDF classique ----------
 def extract_text_from_pdf(pdf_path):
-    reader = PdfReader(pdf_path)
-    text = "\n".join([page.extract_text() for page in reader.pages if page.extract_text()])
-    return text
+    try:
+        reader = PdfReader(pdf_path)
+        text = "\n".join([page.extract_text() for page in reader.pages if page.extract_text()])
+        return text.strip()
+    except Exception as e:
+        logging.warning(f"[extract_text_from_pdf] Failed with error: {e}")
+        return ""
+
+# ---------- 🧠 OCR Fallback pour PDF scannés ----------
+def extract_text_with_ocr(pdf_path):
+    try:
+        logging.info("[OCR] Fallback OCR activated")
+        pages = convert_from_path(pdf_path)
+        text = ""
+        for i, page in enumerate(pages):
+            extracted = pytesseract.image_to_string(page, lang="fra")
+            text += f"\n\n=== Page {i + 1} ===\n{extracted}"
+        return text.strip()
+    except Exception as e:
+        logging.error(f"[extract_text_with_ocr] Failed: {e}")
+        return ""
 
 def clean_text(text):
     text = re.sub(r'\n+', ' ', text)
@@ -93,29 +115,43 @@ def get_embedding(text):
     doc = nlp(text)
     return doc.vector.tolist()
 
+# ---------- 🚀 Fonction principale appelée par app.py ----------
 def process_and_upload_pdf(pdf_path):
-    text = extract_text_from_pdf(pdf_path)
-    chunks = create_chunks(text)
-    if not chunks:
-        logging.error("No valid chunks found.")
-        return None
+    try:
+        text = extract_text_from_pdf(pdf_path)
 
-    documents = []
-    for i, chunk in enumerate(chunks):
-        embedding = get_embedding(chunk)
-        documents.append({
-            'id': f'chunk_{i}',
-            'text': chunk,
-            'metadata': {
-                'chunk_index': i,
-                'language': 'fr',
-                'source': pdf_path,
-                'total_chunks': len(chunks),
-                'chunk_type': 'semantic'
-            },
-            'embedding': embedding
-        })
-    return documents
+        if not text or len(text) < 50:
+            logging.info("[INFO] PDF text seems empty or short. Trying OCR fallback...")
+            text = extract_text_with_ocr(pdf_path)
+
+        if not text or len(text.strip()) < 30:
+            logging.error("[FAIL] No usable text found in PDF (even with OCR)")
+            return None
+
+        chunks = create_chunks(text)
+        if not chunks:
+            logging.error("No valid chunks found.")
+            return None
+
+        documents = []
+        for i, chunk in enumerate(chunks):
+            embedding = get_embedding(chunk)
+            documents.append({
+                'id': f'chunk_{i}',
+                'text': chunk,
+                'metadata': {
+                    'chunk_index': i,
+                    'language': 'fr',
+                    'source': pdf_path,
+                    'total_chunks': len(chunks),
+                    'chunk_type': 'semantic'
+                },
+                'embedding': embedding
+            })
+        return documents
+    except Exception as e:
+        logging.error(f"[process_and_upload_pdf] Unexpected error: {e}")
+        return None
 
 def upsert_to_pinecone(documents, index_name):
     try:
