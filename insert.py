@@ -6,6 +6,7 @@ import spacy
 from pypdf import PdfReader
 import os
 from dotenv import load_dotenv
+import spacy.cli
 
 load_dotenv()
 
@@ -37,7 +38,8 @@ def create_index(index_name):
             metric="cosine",
             spec=ServerlessSpec(cloud='aws', region='us-east-1')
         )
-
+        
+spacy.cli.download("fr_core_news_sm")
 nlp = spacy.load("fr_core_news_sm")
 
 def extract_text_from_pdf(pdf_path):
