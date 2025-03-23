@@ -23,7 +23,8 @@ if INDEX_NAME not in pc.list_indexes().names():
 index = pc.Index(INDEX_NAME)
 
 
-nlp = spacy.load("fr_core_news_md")
+nlp = spacy.load("fr_core_news_sm")
+
 
 def query_pinecone(user_query, top_k=5):
     doc = nlp(user_query)
