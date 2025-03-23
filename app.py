@@ -3,7 +3,7 @@ from insert import process_and_upload_pdf, create_index, upsert_to_pinecone
 from query import query_pinecone
 import os
 from dotenv import load_dotenv
-from pinecone import Pinecone
+from pinecone
 
 load_dotenv()
 
@@ -11,7 +11,9 @@ PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_ENV = os.getenv("PINECONE_ENV")
 INDEX_NAME = os.getenv("INDEX_NAME")
 
-pc = Pinecone(api_key=PINECONE_API_KEY, environment=PINECONE_ENV)
+pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENV)
+index = pinecone.Index(INDEX_NAME)
+
 
 app = Flask(__name__)
 
