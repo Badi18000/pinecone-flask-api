@@ -1,4 +1,4 @@
-from pinecone import ServerlessSpec, Pinecone
+from pinecone
 import nltk
 import re
 import logging
@@ -16,7 +16,9 @@ DIMENSION = 300
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
-pc = Pinecone(api_key=PINECONE_API_KEY, environment=PINECONE_ENV)
+pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENV)
+index = pinecone.Index(INDEX_NAME)
+
 
 def create_index(index_name):
     if not pc.has_index(index_name):
