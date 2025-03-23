@@ -3,7 +3,7 @@ from insert import process_and_upload_pdf, create_index, upsert_to_pinecone
 from query import query_pinecone
 import os
 from dotenv import load_dotenv
-import pinecone
+from pinecone import Pinecone, ServerlessSpec
 
 
 load_dotenv()
@@ -12,8 +12,17 @@ PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_ENV = os.getenv("PINECONE_ENV")
 INDEX_NAME = os.getenv("INDEX_NAME")
 
-pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENV)
-index = pinecone.Index(INDEX_NAME)
+pc = Pinecone(api_key=PINECONE_API_KEY)
+
+if INDEX_NAME not in pc.list_indexes().names():
+    pc.create_index(
+        name=INDEX_NAME,
+        dimension=DIMENSION,
+        metric="cosine",
+        spec=ServerlessSpec(cloud="aws", region="us-east-1")
+    )
+
+index = pc.Index(INDEX_NAME)
 
 
 app = Flask(__name__)
