@@ -1,14 +1,13 @@
-flask
 pinecone
+flask
 spacy
 pdfplumber
 pypdf
 nltk
 python-dotenv
 gunicorn
+fr-core-news-sm @ https://github.com/explosion/spacy-models/releases/download/fr_core_news_sm-3.7.0/fr_core_news_sm-3.7.0-py3-none-any.whl
 
-# SpaCy French model
-fr-core-news-md @ https://github.com/explosion/spacy-models/releases/download/fr_core_news_md-3.7.0/fr_core_news_md-3.7.0-py3-none-any.whl
 
 
 
