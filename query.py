@@ -1,4 +1,4 @@
-import Pinecone
+import pinecone
 import spacy
 import os
 from dotenv import load_dotenv
