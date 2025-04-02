@@ -5,4 +5,5 @@ pypdf
 nltk
 python-dotenv
 gunicorn
+pdfplumber
 
