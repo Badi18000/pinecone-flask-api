@@ -1,4 +1,4 @@
-from pinecone import Pinecone, ServerlessSpec
+import Pinecone
 import spacy
 import os
 from dotenv import load_dotenv
@@ -11,14 +11,14 @@ PINECONE_ENV = os.getenv("PINECONE_ENV")
 INDEX_NAME = os.getenv("INDEX_NAME")
 DIMENSION = 300
 
-pc = Pinecone(api_key=PINECONE_API_KEY)
+pinecone.init(api_key=PINECONE_API_KEY, environment="us-east-1")
+index = pinecone.Index(INDEX_NAME)
 
 if INDEX_NAME not in pc.list_indexes().names():
     pc.create_index(
         name=INDEX_NAME,
         dimension=DIMENSION,
         metric="cosine",
-        spec=ServerlessSpec(cloud="aws", region="us-east-1")
     )
 
 index = pc.Index(INDEX_NAME)
