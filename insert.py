@@ -8,9 +8,9 @@ import os
 from dotenv import load_dotenv
 import spacy.cli
 import pdfplumber
-from pdf2image import convert_from_path
+# from pdf2image import convert_from_path  ❌ plus utilisé
 import pytesseract
-from utils import split_and_embed 
+from utils import split_and_embed
 
 load_dotenv()
 
@@ -22,9 +22,8 @@ DIMENSION = 300
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 pinecone.init(api_key=PINECONE_API_KEY, environment="us-east-1")
-index = pinecone.Index(INDEX_NAME)
 
-
+# Crée l'index si besoin
 if INDEX_NAME not in pinecone.list_indexes():
     pinecone.create_index(
         name=INDEX_NAME,
@@ -32,17 +31,7 @@ if INDEX_NAME not in pinecone.list_indexes():
         metric="cosine"
     )
 
-
-index = pc.Index(INDEX_NAME)
-
-def create_index(index_name):
-    if not pc.has_index(index_name):
-        pc.create_index(
-            name=index_name,
-            dimension=DIMENSION,
-            metric="cosine",
-            spec=ServerlessSpec(cloud='aws', region='us-east-1')
-        )
+index = pinecone.Index(INDEX_NAME)
 
 spacy.cli.download("fr_core_news_sm")
 nlp = spacy.load("fr_core_news_sm")
@@ -57,19 +46,10 @@ def extract_text_from_pdf(pdf_path):
         logging.warning(f"[extract_text_from_pdf] Failed with error: {e}")
         return ""
 
-# ---------- 🧠 OCR Fallback pour PDF scannés ----------
+# ---------- 🧠 OCR Fallback désactivé (pas supporté Render) ----------
 def extract_text_with_ocr(pdf_path):
-    try:
-        logging.info("[OCR] Fallback OCR activated")
-        pages = convert_from_path(pdf_path)
-        text = ""
-        for i, page in enumerate(pages):
-            extracted = pytesseract.image_to_string(page, lang="fra")
-            text += f"\n\n=== Page {i + 1} ===\n{extracted}"
-        return text.strip()
-    except Exception as e:
-        logging.error(f"[extract_text_with_ocr] Failed: {e}")
-        return ""
+    logging.warning("[OCR] Skipped — 'pdf2image' non compatible avec Render.")
+    return ""
 
 def clean_text(text):
     text = re.sub(r'\n+', ' ', text)
@@ -123,11 +103,10 @@ def process_and_upload_pdf(pdf_path):
         text = extract_text_from_pdf(pdf_path)
 
         if not text or len(text) < 50:
-            logging.info("[INFO] PDF text seems empty or short. Trying OCR fallback...")
-            text = extract_text_with_ocr(pdf_path)
+            logging.info("[INFO] PDF text seems empty or short. OCR skipped (no pdf2image on Render).")
 
         if not text or len(text.strip()) < 30:
-            logging.error("[FAIL] No usable text found in PDF (even with OCR)")
+            logging.error("[FAIL] No usable text found in PDF")
             return None
 
         chunks = create_chunks(text)
@@ -157,7 +136,7 @@ def process_and_upload_pdf(pdf_path):
 
 def upsert_to_pinecone(documents, index_name):
     try:
-        index = pc.Index(index_name)
+        index = pinecone.Index(index_name)
         vectors = [{
             'id': doc['id'],
             'values': doc['embedding'],
