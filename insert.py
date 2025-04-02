@@ -1,4 +1,4 @@
-import Pinecone
+import pinecone
 import nltk
 import re
 import logging
